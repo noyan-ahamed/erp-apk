@@ -1,4 +1,6 @@
+import 'dart:convert'; // base64Decode এর জন্য প্রয়োজন
 import 'package:enterprise_resource_planning/core/services/token_service.dart';
+import 'package:enterprise_resource_planning/data/models/user_model.dart'; // UserModel এর জন্য
 import 'package:enterprise_resource_planning/presentation/screens/category/product_category_screen.dart';
 import 'package:enterprise_resource_planning/presentation/screens/customer_payment/customer_payment_screen.dart';
 import 'package:enterprise_resource_planning/presentation/screens/dashboard_home.dart';
@@ -31,17 +33,26 @@ class _AdminLayoutScreen extends State<AdminLayoutScreen> {
   bool loadingRoles = true;
   String selectedMenu = "dashboard";
 
+
+  UserModel? currentUser;
+
   @override
   void initState() {
     super.initState();
     validatePasswordStatus();
-    loadRoles();
+    loadRolesAndUser();
   }
 
-  Future<void> loadRoles() async {
-    final savedRoles = await TokenService.getRoles();
-    String defaultMenu = "dashboard";
+  Future<void> loadRolesAndUser() async {
 
+    final savedRoles = await TokenService.getRoles();
+
+    final userJson = await TokenService.getUser();
+    if (userJson != null) {
+      currentUser = UserModel.fromJson(jsonDecode(userJson));
+    }
+
+    String defaultMenu = "dashboard";
     if (savedRoles.contains("EMPLOYEE")) {
       defaultMenu = "new_sale";
     }
@@ -118,21 +129,19 @@ class _AdminLayoutScreen extends State<AdminLayoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Navigation logic based on role
     String homeMenu = isAdmin() ? "dashboard" : "new_sale";
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) async {
         if (didPop) return;
 
-        // If not on home page, go back to home page
         if (selectedMenu != homeMenu) {
           setState(() {
             selectedMenu = homeMenu;
           });
         } else {
-          // If already on home page, show exit confirmation
           bool exit = false;
           await QuickAlert.show(
             context: context,
@@ -166,27 +175,29 @@ class _AdminLayoutScreen extends State<AdminLayoutScreen> {
             IconButton(
               icon: Icon(
                 Icons.notifications_none_rounded,
-                // Dark mode e icon color auto adapt korbe
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : const Color(0xFF64748B),
+                color: isDark ? Colors.white : const Color(0xFF64748B),
               ),
               onPressed: () {},
             ),
+
+
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
               child: CircleAvatar(
                 radius: 16,
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white10
-                    : const Color(0xFFE2E8F0),
-                child: Icon(
+                backgroundColor: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+
+                backgroundImage: currentUser?.imageBase64 != null
+                    ? MemoryImage(base64Decode(currentUser!.imageBase64!))
+                    : null,
+
+                child: currentUser?.imageBase64 == null
+                    ? Icon(
                   Icons.person,
                   size: 18,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : const Color(0xFF64748B),
-                ),
+                  color: isDark ? Colors.white : const Color(0xFF64748B),
+                )
+                    : null,
               ),
             ),
           ],
