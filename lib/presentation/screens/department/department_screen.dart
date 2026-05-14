@@ -19,9 +19,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
   bool loading = true;
 
-  bool showForm = false;
 
-  DepartmentModel? selectedDepartment;
 
   @override
   void initState() {
@@ -45,7 +43,6 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
   }
 
   void resetForm() {
-    selectedDepartment = null;
   }
 
   Future<void> deleteDepartment(int id) async {
@@ -93,20 +90,25 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
   }
 
   void onEdit(DepartmentModel department) {
-    setState(() {
-      showForm = true;
-      selectedDepartment = department;
-    });
+    showDialog(
+      context: context,
+      builder: (_) => DepartmentDialog(
+        department: department,
+        onSuccess: () {
+          loadDepartments();
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).colorScheme.background,
 
       body: RefreshIndicator(
         onRefresh: loadDepartments,
-        color: const Color(0xFF6366F1),
+        color: Theme.of(context).primaryColor,
 
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -122,57 +124,22 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
                   ElevatedButton.icon(
                     onPressed: () {
-                      setState(() {
-                        showForm = !showForm;
-
-                        if (!showForm) {
-                          resetForm();
-                        }
-                      });
+                      showDialog(
+                        context: context,
+                        builder: (_) => DepartmentDialog(
+                          onSuccess: () {
+                            loadDepartments();
+                          },
+                        ),
+                      );
                     },
-
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: showForm
-                          ? Colors.grey
-                          : const Color(0xFF6366F1),
-
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-
-                    icon: Icon(
-                      showForm ? Icons.close : Icons.add,
-                      color: Colors.white,
-                    ),
-
-                    label: Text(
-                      showForm ? "Cancel" : "Add Department",
-                      style: const TextStyle(color: Colors.white),
+                    icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                    label: const Text(
+                      "Add Department",
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
-              ),
-
-              const SizedBox(height: 20),
-
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-
-                child: showForm
-                    ? DepartmentDialog(
-                  department: selectedDepartment,
-                  onSuccess: () {
-                    resetForm();
-
-                    setState(() {
-                      showForm = false;
-                    });
-
-                    loadDepartments();
-                  },
-                )
-                    : const SizedBox.shrink(),
               ),
 
               const SizedBox(height: 20),
@@ -210,12 +177,11 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     margin: const EdgeInsets.only(bottom: 12),
 
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
-
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
+                          color: Theme.of(context).cardTheme.shadowColor ?? Colors.black12,
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -254,11 +220,10 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
                       title: Text(
                         d.name,
-
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: const Color(0xFF1E293B),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
 

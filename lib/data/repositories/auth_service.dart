@@ -10,8 +10,7 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
 
-  static const String baseUrl =
-      "${AppConfig.baseUrl}/authentication";
+  static const String baseUrl = "${AppConfig.baseUrl}/authentication";
 
   Future<AuthResponseModel> login(
       LoginRequestModel request

@@ -1,3 +1,5 @@
+import 'package:enterprise_resource_planning/data/models/designation_model.dart';
+
 class EmployeeModel {
 
   final int? id;
@@ -7,7 +9,7 @@ class EmployeeModel {
   final String address;
   final double basicSalary;
   final String joiningDate;
-  final dynamic designation;
+  final DesignationModel? designation;
   final String role;
 
   EmployeeModel({
@@ -38,7 +40,9 @@ class EmployeeModel {
           .toDouble(),
       joiningDate:
       json['joiningDate'] ?? '',
-      designation: json['designation'],
+      designation: json['designation'] != null
+          ? DesignationModel.fromJson(json['designation'])
+          : null,
       role: json['user'] != null &&
           json['user']['roles'] != null &&
           json['user']['roles'].isNotEmpty
@@ -56,7 +60,7 @@ class EmployeeModel {
       "address": address,
       "basicSalary": basicSalary,
       "joiningDate": joiningDate,
-      "designationId": designation.id,
+      "designationId": designation?.id,
     };
   }
 }

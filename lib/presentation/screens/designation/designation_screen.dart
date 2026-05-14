@@ -19,9 +19,7 @@ class _DesignationScreenState extends State<DesignationScreen> {
 
   bool loading = true;
 
-  bool showForm = false;
 
-  DesignationModel? selectedDesignation;
 
   @override
   void initState() {
@@ -45,7 +43,6 @@ class _DesignationScreenState extends State<DesignationScreen> {
   }
 
   void resetForm() {
-    selectedDesignation = null;
   }
 
   Future<void> deleteDesignation(int id) async {
@@ -94,20 +91,25 @@ class _DesignationScreenState extends State<DesignationScreen> {
   }
 
   void onEdit(DesignationModel designation) {
-    setState(() {
-      showForm = true;
-      selectedDesignation = designation;
-    });
+    showDialog(
+      context: context,
+      builder: (_) => DesignationDialog(
+        designation: designation,
+        onSuccess: () {
+          loadData();
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).colorScheme.background,
 
       body: RefreshIndicator(
         onRefresh: loadData,
-        color: const Color(0xFF6366F1),
+        color: Theme.of(context).primaryColor,
 
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -123,58 +125,22 @@ class _DesignationScreenState extends State<DesignationScreen> {
 
                   ElevatedButton.icon(
                     onPressed: () {
-                      setState(() {
-                        showForm = !showForm;
-
-                        if (!showForm) {
-                          resetForm();
-                        }
-                      });
+                      showDialog(
+                        context: context,
+                        builder: (_) => DesignationDialog(
+                          onSuccess: () {
+                            loadData();
+                          },
+                        ),
+                      );
                     },
-
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: showForm
-                          ? Colors.grey
-                          : const Color(0xFF6366F1),
-
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-
-                    icon: Icon(
-                      showForm ? Icons.close : Icons.add,
-                      color: Colors.white,
-                    ),
-
-                    label: Text(
-                      showForm ? "Cancel" : "Add Designation",
-                      style: const TextStyle(color: Colors.white),
+                    icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                    label: const Text(
+                      "Add Designation",
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
-              ),
-
-              const SizedBox(height: 20),
-
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-
-                child: showForm
-                    ? DesignationDialog(
-                  designation: selectedDesignation,
-
-                  onSuccess: () {
-                    resetForm();
-
-                    setState(() {
-                      showForm = false;
-                    });
-
-                    loadData();
-                  },
-                )
-                    : const SizedBox.shrink(),
               ),
 
               const SizedBox(height: 20),
@@ -212,12 +178,11 @@ class _DesignationScreenState extends State<DesignationScreen> {
                     margin: const EdgeInsets.only(bottom: 12),
 
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
-
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
+                          color: Theme.of(context).cardTheme.shadowColor ?? Colors.black12,
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -256,11 +221,10 @@ class _DesignationScreenState extends State<DesignationScreen> {
 
                       title: Text(
                         d.name,
-
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: const Color(0xFF1E293B),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
 

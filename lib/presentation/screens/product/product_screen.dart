@@ -22,6 +22,8 @@ class _ProductScreenState
   ProductService();
 
   List<ProductModel> products = [];
+  List<ProductModel> filteredProducts = [];
+  String searchQuery = "";
 
   bool loading = true;
 
@@ -45,6 +47,7 @@ class _ProductScreenState
       setState(() {
 
         products = data;
+        filteredProducts = data;
 
         loading = false;
       });
@@ -127,9 +130,7 @@ class _ProductScreenState
   Widget build(BuildContext context) {
 
     return Scaffold(
-
-      backgroundColor:
-      const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).colorScheme.background,
 
       body: RefreshIndicator(
 
@@ -152,70 +153,43 @@ class _ProductScreenState
             children: [
 
               Row(
-
                 children: [
-
                   Expanded(
-
+                    flex: 2,
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        hintText: "Search product...",
+                        prefixIcon: Icon(Icons.search),
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          searchQuery = val.toLowerCase();
+                          if (searchQuery.isEmpty) {
+                            filteredProducts = products;
+                          } else {
+                            filteredProducts = products.where((p) =>
+                                p.name.toLowerCase().contains(searchQuery) ||
+                                p.sku.toLowerCase().contains(searchQuery)).toList();
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
                     flex: 1,
-
                     child: ElevatedButton.icon(
-
                       onPressed: () async {
-
-                        final result =
-                        await showDialog(
-
+                        final result = await showDialog(
                           context: context,
-
-                          builder: (_) =>
-                          const ProductDialog(),
+                          builder: (_) => const ProductDialog(),
                         );
-
                         if(result == true){
                           loadProducts();
                         }
                       },
-
-                      style:
-                      ElevatedButton.styleFrom(
-
-                        backgroundColor:
-                        const Color(
-                            0xFF6366F1),
-
-                        foregroundColor:
-                        Colors.white,
-
-                        elevation: 0,
-
-                        padding:
-                        const EdgeInsets
-                            .symmetric(
-                          vertical: 14,
-                        ),
-
-                        shape:
-                        RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius
-                              .circular(
-                              12),
-                        ),
-                      ),
-
-                      icon: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                      ),
-
-                      label: const Text(
-                        "Add New",
-
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text("Add", overflow: TextOverflow.ellipsis),
                     ),
                   ),
                 ],
@@ -233,43 +207,22 @@ class _ProductScreenState
                 ),
               )
 
-                  : products.isEmpty
-
+                  : filteredProducts.isEmpty
                   ? Center(
                 child: Padding(
-
-                  padding:
-                  const EdgeInsets.only(
-                    top: 50,
-                  ),
-
+                  padding: const EdgeInsets.only(top: 50),
                   child: Text(
-
                     "No products found",
-
-                    style:
-                    GoogleFonts.inter(
-                      color: Colors.grey,
-                    ),
+                    style: GoogleFonts.inter(color: Colors.grey),
                   ),
                 ),
               )
-
                   : ListView.builder(
-
                 shrinkWrap: true,
-
-                physics:
-                const NeverScrollableScrollPhysics(),
-
-                itemCount:
-                products.length,
-
-                itemBuilder:
-                    (context,index){
-
-                  final p =
-                  products[index];
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredProducts.length,
+                itemBuilder: (context,index){
+                  final p = filteredProducts[index];
 
                   return Container(
 
@@ -278,29 +231,14 @@ class _ProductScreenState
                       bottom: 12,
                     ),
 
-                    decoration:
-                    BoxDecoration(
-
-                      color: Colors.white,
-
-                      borderRadius:
-                      BorderRadius.circular(
-                          16),
-
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color,
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
-
                         BoxShadow(
-
-                          color:
-                          Colors.black
-                              .withOpacity(
-                              0.02),
-
+                          color: Theme.of(context).cardTheme.shadowColor ?? Colors.black12,
                           blurRadius: 10,
-
-                          offset:
-                          const Offset(
-                              0, 4),
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -361,30 +299,17 @@ class _ProductScreenState
                       title: Text(
 
                         p.name,
-
-                        style:
-                        GoogleFonts.inter(
-
-                          fontWeight:
-                          FontWeight.w600,
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color:
-                          const Color(
-                              0xFF1E293B),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-
                       subtitle: Text(
                         "${p.sku} • Stock: ${p.stock}",
-
-                        style:
-                        GoogleFonts.inter(
-
+                        style: GoogleFonts.inter(
                           fontSize: 12,
-
-                          color:
-                          const Color(
-                              0xFF64748B),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
 

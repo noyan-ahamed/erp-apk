@@ -50,7 +50,7 @@ class _SupplierScreenState extends State<SupplierScreen> {
       cancelBtnText: 'No',
       confirmBtnColor: Colors.red,
       onConfirmBtnTap: () async {
-        Navigator.pop(context); 
+        Navigator.pop(context);
         QuickAlert.show(context: context, type: QuickAlertType.loading, text: 'Deleting...');
         try {
           await _service.deleteSupplier(supplier.id!);
@@ -73,38 +73,40 @@ class _SupplierScreenState extends State<SupplierScreen> {
     setState(() {
       filtered = suppliers
           .where((s) =>
-              s.name.toLowerCase().contains(value.toLowerCase()) ||
-              s.mobileNumber.contains(value))
+      s.name.toLowerCase().contains(value.toLowerCase()) ||
+          s.mobileNumber.contains(value))
           .toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: loadSuppliers,
         color: const Color(0xFF6366F1),
         child: Column(
           children: [
-            // 🔍 SEARCH & ADD BUTTON ROW
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              color: Colors.white,
+              color: isDark ? theme.cardColor : Colors.white,
               child: Row(
                 children: [
-                  // Search Field (3/4)
                   Expanded(
                     flex: 3,
                     child: TextField(
                       controller: searchController,
                       onChanged: search,
+                      style: TextStyle(color: theme.colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: "Search supplier...",
                         prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF6366F1)),
                         filled: true,
-                        fillColor: const Color(0xFFF1F5F9),
+                        fillColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF1F5F9),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         contentPadding: const EdgeInsets.symmetric(vertical: 0),
                         hintStyle: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
@@ -112,61 +114,23 @@ class _SupplierScreenState extends State<SupplierScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Add Button
                   Expanded(
                     flex: 1,
-                    child: ElevatedButton.icon(
-
+                    child: ElevatedButton(
                       onPressed: () async {
-
-                        setState(() {
-                          showForm = true;
-                        });
-
                         final result = await showDialog(
                           context: context,
                           builder: (_) => const SupplierDialog(),
                         );
-
-                        setState(() {
-                          showForm = false;
-                        });
-
-                        if(result == true){
-                          loadSuppliers();
-                        }
+                        if(result == true) loadSuppliers();
                       },
-
                       style: ElevatedButton.styleFrom(
-
-                        backgroundColor: showForm
-                            ? Colors.grey
-                            : const Color(0xFF6366F1),
-
+                        backgroundColor: const Color(0xFF6366F1),
                         foregroundColor: Colors.white,
-
-                        elevation: 0,
-
                         padding: const EdgeInsets.symmetric(vertical: 14),
-
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-
-                      icon: Icon(
-                        showForm ? Icons.close : Icons.add,
-                        color: Colors.white,
-                      ),
-
-                      label: Text(
-                        showForm ? "Close" : "Add New",
-
-                        style: GoogleFonts.inter(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: const Icon(Icons.add, color: Colors.white),
                     ),
                   ),
                 ],
@@ -174,18 +138,15 @@ class _SupplierScreenState extends State<SupplierScreen> {
             ),
 
             Expanded(
-              child: isLoading 
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)))
-                : filtered.isEmpty
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)))
+                  : filtered.isEmpty
                   ? Center(child: Text("No suppliers found", style: GoogleFonts.inter(color: Colors.grey)))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final s = filtered[index];
-                        return _buildSupplierItem(s);
-                      },
-                    ),
+                padding: const EdgeInsets.all(16),
+                itemCount: filtered.length,
+                itemBuilder: (context, index) => _buildSupplierItem(filtered[index], isDark),
+              ),
             ),
           ],
         ),
@@ -193,13 +154,13 @@ class _SupplierScreenState extends State<SupplierScreen> {
     );
   }
 
-  Widget _buildSupplierItem(SupplierModel s) {
+  Widget _buildSupplierItem(SupplierModel s, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.02), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ListTile(
         onTap: () => showDialog(context: context, builder: (_) => SupplierDetailsDialog(s)),
@@ -209,13 +170,13 @@ class _SupplierScreenState extends State<SupplierScreen> {
           decoration: BoxDecoration(color: const Color(0xFF6366F1).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
           child: Center(child: Text(s.name[0].toUpperCase(), style: const TextStyle(color: Color(0xFF6366F1), fontWeight: FontWeight.bold, fontSize: 18))),
         ),
-        title: Text(s.name, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: const Color(0xFF1E293B))),
-        subtitle: Text(s.mobileNumber, style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B))),
+        title: Text(s.name, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF1E293B))),
+        subtitle: Text(s.mobileNumber, style: GoogleFonts.inter(fontSize: 12, color: isDark ? Colors.white60 : const Color(0xFF64748B))),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Color(0xFF64748B), size: 20),
+              icon: Icon(Icons.edit_outlined, color: isDark ? Colors.white70 : const Color(0xFF64748B), size: 20),
               onPressed: () async {
                 final result = await showDialog(context: context, builder: (_) => SupplierDialog(supplier: s));
                 if (result == true) loadSuppliers();

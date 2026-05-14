@@ -41,7 +41,8 @@ class EmployeeService {
       jsonEncode(employee.toJson()),
     );
 
-    if(response.statusCode == 200){
+    if(response.statusCode == 200 ||
+        response.statusCode == 201){
 
       return EmployeeModel.fromJson(
         jsonDecode(response.body),
@@ -61,7 +62,8 @@ class EmployeeService {
       jsonEncode(employee.toJson()),
     );
 
-    if(response.statusCode == 200){
+    if(response.statusCode == 200 ||
+        response.statusCode == 204){
 
       return EmployeeModel.fromJson(
         jsonDecode(response.body),

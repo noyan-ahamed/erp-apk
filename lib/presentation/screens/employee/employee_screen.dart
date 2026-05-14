@@ -111,210 +111,104 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-
-      backgroundColor: const Color(0xFFF8FAFC),
-
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
-
         onRefresh: loadEmployees,
-
         color: const Color(0xFF6366F1),
-
         child: Column(
-
           children: [
-
             Container(
-
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 20,
-              ),
-
-              color: Colors.white,
-
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              color: isDark ? theme.cardColor : Colors.white,
               child: Row(
-
                 children: [
-
                   Expanded(
-
                     flex: 3,
-
                     child: TextField(
-
                       controller: searchController,
-
                       onChanged: search,
-
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       decoration: InputDecoration(
-
                         hintText: "Search employee...",
-
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          size: 20,
-                          color: Color(0xFF6366F1),
-                        ),
-
+                        prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF6366F1)),
                         filled: true,
-
-                        fillColor: const Color(0xFFF1F5F9),
-
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-
-                        contentPadding:
-                        const EdgeInsets.symmetric(vertical: 0),
-
-                        hintStyle: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
+                        fillColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF1F5F9),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        hintStyle: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 12),
-
                   Expanded(
-
-                    flex: 1,
-
+                    flex: 2,
                     child: ElevatedButton.icon(
-
                       onPressed: () async {
-
                         final result = await showDialog(
-
                           context: context,
-
                           builder: (_) => EmployeeDialog(),
                         );
-
-                        if(result == true){
-                          loadEmployees();
-                        }
+                        if (result == true) loadEmployees();
                       },
-
                       style: ElevatedButton.styleFrom(
-
-                        backgroundColor:
-                        const Color(0xFF6366F1),
-
+                        backgroundColor: const Color(0xFF6366F1),
                         foregroundColor: Colors.white,
-
                         elevation: 0,
-
-                        padding:
-                        const EdgeInsets.symmetric(vertical: 14),
-
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-
-                      icon: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                      ),
-
-                      label: const Text(
-                        "Add New",
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                      label: const Text("Add New", style: TextStyle(color: Colors.white, fontSize: 13)),
                     ),
                   ),
                 ],
               ),
             ),
-
             Expanded(
-
               child: loading
-
-                  ? const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFF6366F1),
-                ),
-              )
-
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1)))
                   : filtered.isEmpty
-
-                  ? Center(
-                child: Text(
-                  "No employees found",
-                  style: GoogleFonts.inter(
-                    color: Colors.grey,
-                  ),
-                ),
-              )
-
+                  ? Center(child: Text("No employees found", style: GoogleFonts.inter(color: Colors.grey)))
                   : ListView.builder(
-
                 padding: const EdgeInsets.all(16),
-
                 itemCount: filtered.length,
-
-                itemBuilder: (context,index){
-
+                itemBuilder: (context, index) {
                   final e = filtered[index];
-
                   return Container(
-
                     margin: const EdgeInsets.only(bottom: 12),
-
                     decoration: BoxDecoration(
-
-                      color: Colors.white,
-
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-
                       boxShadow: [
-
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
+                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-
                     child: ListTile(
-
-                      onTap: (){
+                      onTap: () {
                         showDialog(
                           context: context,
                           builder: (_) => EmployeeDetailsDialog(e),
                         );
                       },
-
-                      contentPadding:
-                      const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       leading: Container(
-
                         width: 48,
                         height: 48,
-
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1)
-                              .withOpacity(0.1),
-
+                          color: const Color(0xFF6366F1).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-
                         child: Center(
                           child: Text(
                             e.name[0].toUpperCase(),
-
                             style: const TextStyle(
                               color: Color(0xFF6366F1),
                               fontWeight: FontWeight.bold,
@@ -323,68 +217,37 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                           ),
                         ),
                       ),
-
                       title: Text(
                         e.name,
-
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: const Color(0xFF1E293B),
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                         ),
                       ),
-
                       subtitle: Text(
-                        "${e.mobileNumber} • ${e.designation['name']}",
-
+                        "${e.mobileNumber} • ${e.designation?.name ?? ''}",
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: const Color(0xFF64748B),
+                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
                         ),
                       ),
-
                       trailing: Row(
-
                         mainAxisSize: MainAxisSize.min,
-
                         children: [
-
                           IconButton(
-
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              color: Color(0xFF64748B),
-                              size: 20,
-                            ),
-
+                            icon: Icon(Icons.edit_outlined, color: isDark ? Colors.white70 : const Color(0xFF64748B), size: 20),
                             onPressed: () async {
-
                               final result = await showDialog(
-
                                 context: context,
-
-                                builder: (_) => EmployeeDialog(
-                                  employee: e,
-                                ),
+                                builder: (_) => EmployeeDialog(employee: e),
                               );
-
-                              if(result == true){
-                                loadEmployees();
-                              }
+                              if (result == true) loadEmployees();
                             },
                           ),
-
                           IconButton(
-
-                            icon: const Icon(
-                              Icons.delete_outline_rounded,
-                              color: Colors.redAccent,
-                              size: 20,
-                            ),
-
-                            onPressed: (){
-                              deleteEmployee(e.id!);
-                            },
+                            icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                            onPressed: () => deleteEmployee(e.id!),
                           ),
                         ],
                       ),

@@ -232,180 +232,110 @@ class _PurchaseDialogState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Dialog(
-
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
-
-        width: 950,
-
+        // Dynamic width: Desktop hole 800, mobile hole screen width
+        width: screenWidth > 800 ? 800 : screenWidth * 0.95,
         padding: const EdgeInsets.all(20),
-
         child: loading
-
-            ? const SizedBox(
-          height: 300,
-          child: Center(
-            child: CircularProgressIndicator(),
-          ),
-        )
-
+            ? const SizedBox(height: 300, child: Center(child: CircularProgressIndicator(color: Color(0xFF6366F1))))
             : SingleChildScrollView(
-
           child: Column(
-
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
-
+            mainAxisSize: MainAxisSize.min, // Alignment fix: content onujayi boro hobe
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              Text(
-
-                "Create Purchase",
-
-                style: GoogleFonts.inter(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Create Purchase",
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  )
+                ],
               ),
-
               const SizedBox(height: 20),
 
+              // Supplier Selector input field gulo k dark mode e visible korar jonno niche dropdown updated
               SupplierSelector(
-
                 suppliers: suppliers,
-
-                selectedSupplier:
-                selectedSupplier,
-
-                onChanged: (v){
-
-                  setState(() {
-                    selectedSupplier = v;
-                  });
-                },
+                selectedSupplier: selectedSupplier,
+                onChanged: (v) => setState(() => selectedSupplier = v),
               ),
-
               const SizedBox(height: 16),
-
               PaymentTermsDropdown(
-
                 value: paymentTerms,
-
-                onChanged: (v){
-
-                  setState(() {
-                    paymentTerms = v!;
-                  });
-                },
+                onChanged: (v) => setState(() => paymentTerms = v!),
               ),
-
               const SizedBox(height: 24),
 
               Row(
-
-                mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
-
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-
                   Text(
-
                     "Purchase Items",
-
                     style: GoogleFonts.inter(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white70 : Colors.black87,
                     ),
                   ),
-
-                  ElevatedButton.icon(
-
+                  TextButton.icon(
                     onPressed: addItem,
-
-                    icon: const Icon(Icons.add),
-
-                    label:
-                    const Text("Add Product"),
+                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                    label: const Text("Add Item"),
+                    style: TextButton.styleFrom(foregroundColor: const Color(0xFF6366F1)),
                   ),
                 ],
               ),
+              const Divider(),
+              const SizedBox(height: 10),
 
-              const SizedBox(height: 18),
-
-              ...List.generate(items.length, (index){
-
+              // Items list
+              ...List.generate(items.length, (index) {
                 return PurchaseItemRow(
-
                   item: items[index],
-
                   products: products,
-
                   index: index,
-
-                  onChanged: (){
-
+                  onChanged: () {
                     calculateTotal();
-
                     setState(() {});
                   },
-
-                  onDelete: (){
-                    removeItem(index);
-                  },
+                  onDelete: () => removeItem(index),
                 );
               }),
 
               const SizedBox(height: 20),
-
-              PurchaseSummary(
-                totalAmount: totalAmount,
-              ),
-
+              PurchaseSummary(totalAmount: totalAmount), // Niche Summary te Taka sign add kora hoyeche
               const SizedBox(height: 24),
 
               SizedBox(
-
                 width: double.infinity,
-
                 child: ElevatedButton(
-
-                  onPressed:
-                  creating ? null : createPurchase,
-
+                  onPressed: creating ? null : createPurchase,
                   style: ElevatedButton.styleFrom(
-
-                    backgroundColor:
-                    const Color(0xFF6366F1),
-
-                    foregroundColor:
-                    Colors.white,
-
-                    padding:
-                    const EdgeInsets.symmetric(
-                      vertical: 16,
-                    ),
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-
                   child: creating
-
-                      ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child:
-                    CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-
-                      : const Text(
-                    "Create Purchase",
-                  ),
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text("Create Purchase", style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

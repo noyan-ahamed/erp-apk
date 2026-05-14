@@ -13,7 +13,6 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final service = AdminDashboardService();
-
   AdminDashboardResponse? data;
   bool loading = true;
 
@@ -37,19 +36,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: Color(0xFF6366F1))),
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator(color: Color(0xFF6366F1))),
       );
     }
 
     if (data == null) {
       return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Failed to load dashboard data"),
+              Text("Failed to load dashboard data", style: TextStyle(color: theme.colorScheme.onSurface)),
+              const SizedBox(height: 10),
               ElevatedButton(onPressed: loadData, child: const Text("Retry"))
             ],
           ),
@@ -60,7 +65,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final summary = data!.summary;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: loadData,
         color: const Color(0xFF6366F1),
@@ -70,9 +75,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // _buildSectionHeader(""),
-              // const SizedBox(height: 16),
-              
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -81,58 +83,60 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 crossAxisSpacing: 16,
                 childAspectRatio: 1.5,
                 children: [
-                  _summaryCard("Today Sales", summary.todaySales, Icons.trending_up, [Color(0xFF6366F1), Color(0xFF818CF8)]),
-                  _summaryCard("Today Profit", summary.todayProfit, Icons.payments, [Color(0xFF10B981), Color(0xFF34D399)]),
-                  _summaryCard("Month Sales", summary.monthSales, Icons.calendar_month, [Color(0xFFF59E0B), Color(0xFFFBBF24)]),
-                  _summaryCard("Month Profit", summary.monthProfit, Icons.account_balance_wallet, [Color(0xFFEC4899), Color(0xFFF472B6)]),
-                  _summaryCard("Customer Due", summary.totalCustomerDue, Icons.money_off, [Color(0xFFEF4444), Color(0xFFF87171)]),
-                  _summaryCard("Supplier Payable", summary.totalSupplierPayable, Icons.request_quote, [Color(0xFF8B5CF6), Color(0xFFA78BFA)]),
-                  _summaryCard("Low Stock", summary.lowStockCount.toDouble(), Icons.warning_amber_rounded, [Color(0xFF64748B), Color(0xFF94A3B8)]),
-                  _summaryCard("Total Products", summary.totalProducts.toDouble(), Icons.inventory_2, [Color(0xFF0EA5E9), Color(0xFF38BDF8)]),
+                  _summaryCard("Today Sales", summary.todaySales, Icons.trending_up, [const Color(0xFF6366F1), const Color(0xFF818CF8)]),
+                  _summaryCard("Today Profit", summary.todayProfit, Icons.payments, [const Color(0xFF10B981), const Color(0xFF34D399)]),
+                  _summaryCard("Month Sales", summary.monthSales, Icons.calendar_month, [const Color(0xFFF59E0B), const Color(0xFFFBBF24)]),
+                  _summaryCard("Month Profit", summary.monthProfit, Icons.account_balance_wallet, [const Color(0xFFEC4899), const Color(0xFFF472B6)]),
+                  _summaryCard("Customer Due", summary.totalCustomerDue, Icons.money_off, [const Color(0xFFEF4444), const Color(0xFFF87171)]),
+                  _summaryCard("Supplier Payable", summary.totalSupplierPayable, Icons.request_quote, [const Color(0xFF8B5CF6), const Color(0xFFA78BFA)]),
+                  _summaryCard("Low Stock", summary.lowStockCount.toDouble(), Icons.warning_amber_rounded, [const Color(0xFF64748B), const Color(0xFF94A3B8)]),
+                  _summaryCard("Total Products", summary.totalProducts.toDouble(), Icons.inventory_2, [const Color(0xFF0EA5E9), const Color(0xFF38BDF8)]),
                 ],
               ),
 
               const SizedBox(height: 32),
               _buildSectionHeader("Sales & Profit Trend"),
               const SizedBox(height: 16),
-              _chartContainer(salesChart(data!.salesProfitTrend)),
+              _chartContainer(salesChart(data!.salesProfitTrend, isDark), isDark),
 
               const SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionHeader("Monthly Sales"),
-                        const SizedBox(height: 16),
-                        _chartContainer(barChart(data!.monthlySalesComparison), height: 250),
-                      ],
+              LayoutBuilder(builder: (context, constraints) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader("Monthly Sales"),
+                          const SizedBox(height: 16),
+                          _chartContainer(barChart(data!.monthlySalesComparison), isDark, height: 250),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionHeader("Payment Methods"),
-                        const SizedBox(height: 16),
-                        _chartContainer(pieChart(data!.paymentMethodDistribution), height: 250),
-                      ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader("Payment Methods"),
+                          const SizedBox(height: 16),
+                          _chartContainer(pieChart(data!.paymentMethodDistribution), isDark, height: 250),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              }),
 
               const SizedBox(height: 32),
               _buildSectionHeader("Low Stock Alerts"),
               const SizedBox(height: 16),
-              _lowStockTable(data!.lowStockItems),
+              _lowStockTable(data!.lowStockItems, isDark),
 
               const SizedBox(height: 32),
               _buildSectionHeader("Recent Activities"),
               const SizedBox(height: 16),
-              _activityList(data!.recentActivities),
+              _activityList(data!.recentActivities, isDark),
               const SizedBox(height: 40),
             ],
           ),
@@ -142,18 +146,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
-        ),
-        // Text(
-        //   subtitle,
-        //   style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
-        // ),
-      ],
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface
+      ),
     );
   }
 
@@ -183,8 +182,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               FittedBox(
                 child: Text(
                   title.contains("Stock") || title.contains("Products")
-                    ? value.toInt().toString()
-                    : "৳ ${value.toStringAsFixed(0)}",
+                      ? value.toInt().toString()
+                      : "৳ ${value.toStringAsFixed(0)}",
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -195,34 +194,36 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _chartContainer(Widget chart, {double height = 300}) {
+  Widget _chartContainer(Widget chart, bool isDark, {double height = 300}) {
     return Container(
       height: height,
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5)),
+          BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.05), blurRadius: 15, offset: const Offset(0, 5)),
         ],
       ),
       child: chart,
     );
   }
 
-  Widget salesChart(List<AdminDashboardTrendPoint> list) {
+  Widget salesChart(List<AdminDashboardTrendPoint> list, bool isDark) {
+    final textColor = isDark ? Colors.white70 : Colors.grey;
     return LineChart(
       LineChartData(
-        gridData: FlGridData(show: true, drawVerticalLine: false, getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey[100], strokeWidth: 1)),
+        gridData: FlGridData(show: true, drawVerticalLine: false, getDrawingHorizontalLine: (value) => FlLine(color: isDark ? Colors.white10 : Colors.grey[100], strokeWidth: 1)),
         titlesData: FlTitlesData(
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, getTitlesWidget: (value, meta) {
             if (value.toInt() >= 0 && value.toInt() < list.length) {
-              return Text(list[value.toInt()].label.substring(0, 3), style: const TextStyle(fontSize: 10, color: Colors.grey));
+              return Text(list[value.toInt()].label.substring(0, 3), style: TextStyle(fontSize: 10, color: textColor));
             }
             return const Text('');
           })),
+          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40, getTitlesWidget: (value, meta) => Text(value.toInt().toString(), style: TextStyle(fontSize: 10, color: textColor)))),
         ),
         borderData: FlBorderData(show: false),
         lineBarsData: [
@@ -231,7 +232,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             color: const Color(0xFF6366F1),
             barWidth: 4,
             isStrokeCapRound: true,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(show: true, color: const Color(0xFF6366F1).withOpacity(0.1)),
             spots: list.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.sales.toDouble())).toList(),
           ),
@@ -240,7 +241,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             color: const Color(0xFF10B981),
             barWidth: 4,
             isStrokeCapRound: true,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(show: true, color: const Color(0xFF10B981).withOpacity(0.1)),
             spots: list.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.profit.toDouble())).toList(),
           ),
@@ -254,9 +255,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
         maxY: list.map((e) => e.sales.toDouble()).reduce((a, b) => a > b ? a : b) * 1.2,
-        barTouchData: BarTouchData(enabled: true),
-        titlesData: FlTitlesData(show: false),
-        gridData: FlGridData(show: false),
+        titlesData: const FlTitlesData(show: false),
+        gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
         barGroups: list.asMap().entries.map((e) {
           return BarChartGroupData(
@@ -293,42 +293,45 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _lowStockTable(List<AdminDashboardLowStockItem> items) {
+  Widget _lowStockTable(List<AdminDashboardLowStockItem> items, bool isDark) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.05), blurRadius: 15, offset: const Offset(0, 5))],
       ),
-      child: DataTable(
-        headingRowColor: MaterialStateProperty.all(const Color(0xFFF1F5F9)),
-        columns: [
-          DataColumn(label: Text("Product", style: GoogleFonts.poppins(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text("Stock", style: GoogleFonts.poppins(fontWeight: FontWeight.bold))),
-        ],
-        rows: items.map((e) {
-          return DataRow(cells: [
-            DataCell(Text(e.productName, style: GoogleFonts.poppins(fontSize: 13))),
-            DataCell(Text(e.stock.toString(), style: GoogleFonts.poppins(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold))),
-          ]);
-        }).toList(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: DataTable(
+          headingRowColor: MaterialStateProperty.all(isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFF1F5F9)),
+          columns: [
+            DataColumn(label: Text("Product", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black))),
+            DataColumn(label: Text("Stock", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black))),
+          ],
+          rows: items.map((e) {
+            return DataRow(cells: [
+              DataCell(Text(e.productName, style: GoogleFonts.poppins(fontSize: 13, color: isDark ? Colors.white70 : Colors.black))),
+              DataCell(Text(e.stock.toString(), style: GoogleFonts.poppins(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold))),
+            ]);
+          }).toList(),
+        ),
       ),
     );
   }
 
-  Widget _activityList(List<AdminDashboardActivity> list) {
+  Widget _activityList(List<AdminDashboardActivity> list, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.05), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: list.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
+        separatorBuilder: (context, index) => Divider(height: 1, color: isDark ? Colors.white10 : Colors.grey[200]),
         itemBuilder: (context, index) {
           final e = list[index];
           return ListTile(
@@ -336,8 +339,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
               child: const Icon(Icons.history, color: Color(0xFF6366F1), size: 20),
             ),
-            title: Text(e.title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500)),
-            subtitle: Text(e.date, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+            title: Text(e.title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black)),
+            subtitle: Text(e.date, style: GoogleFonts.poppins(fontSize: 12, color: isDark ? Colors.white54 : Colors.grey)),
             trailing: Text("৳ ${e.amount}", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: const Color(0xFF10B981))),
           );
         },
